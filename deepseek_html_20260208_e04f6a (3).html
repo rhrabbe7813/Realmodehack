@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Real Mode Hack - Live Prediction System</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Premium Color Palette */
+            --primary: #FF005C;
+            --secondary: #00D4FF;
+            --accent: #FFD700;
+            --success: #00FF88;
+            --warning: #FFAA00;
+            --danger: #FF4757;
+            
+            /* Dark Theme */
+            --dark-bg: #0A0A0F;
+            --dark-card: #1A1A2E;
+            --dark-surface: #252541;
+            --dark-text: #FFFFFF;
+            --dark-muted: #8B8BA0;
+            
+            /* Light Theme */
+            --light-bg: #F0F2FF;
+            --light-card: #FFFFFF;
+            --light-surface: #E8EAFF;
+            --light-text: #1A1A2E;
+            --light-muted: #666680;
+            
+            /* Common */
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 30px 90px rgba(0, 0, 0, 0.6);
+            --border-radius: 20px;
+            --border-radius-lg: 30px;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .light-theme {
+            --bg-color: var(--light-bg);
+            --card-color: var(--light-card);
+            --surface-color: var(--light-surface);
+            --text-color: var(--light-text);
+            --muted-color: var(--light-muted);
+        }
+
+        .dark-theme {
+            --bg-color: var(--dark-bg);
+            --card-color: var(--dark-card);
+            --surface-color: var(--dark-surface);
+            --text-color: var(--dark-text);
+            --muted-color: var(--dark-muted);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            transition: var(--transition);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 92, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.15) 0%, transparent 25%);
+            line-height: 1.6;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--dark-card), var(--dark-surface));
+            border-radius: var(--border-radius-lg);
+            padding: 50px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            border: 3px solid var(--primary);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            animation: modalSlideIn 0.5s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+
+        .modal-subtitle {
+            color: var(--muted-color);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .period-input-container {
+            margin: 40px 0;
+        }
+
+        .period-input-label {
+            display: block;
+            color: var(--muted-color);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .period-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 2rem;
+            font-family: 'Orbitron', monospace;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            border: 3px solid var(--secondary);
+            border-radius: 15px;
+            color: var(--accent);
+            font-weight: 700;
+            transition: var(--transition);
+            outline: none;
+            letter-spacing: 3px;
+        }
+
+        .period-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(255, 0, 92, 0.5);
+            transform: scale(1.02);
+        }
+
+        .period-example {
+            margin-top: 15px;
+            color: var(--muted-color);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .modal-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            margin-top: 30px;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            letter-spacing: 2px;
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .modal-btn.active {
+            opacity: 1;
+            cursor: pointer;
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .input-error {
+            color: var(--danger);
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .input-error.show {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Important Notice Sticky Bar */
+        .important-notice {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, 
+                #FF005C, #FF2B7D, #FF005C, #FF2B7D);
+            background-size: 200% 100%;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            z-index: 9999;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 25px rgba(255, 0, 92, 0.5);
+            animation: noticeShimmer 3s infinite linear;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        .important-notice .notice-icon {
+            font-size: 1.8rem;
+            animation: bellRing 2s infinite;
+        }
+
+        .important-notice .notice-text {
+            font-weight: 800;
+        }
+
+        .important-notice .highlight {
+            color: #FFD700;
+            font-weight: 900;
+            text-decoration: underline;
+            animation: highlightPulse 1.5s infinite;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @keyframes noticeShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes bellRing {
+            0%, 100% { transform: rotate(0); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(-15deg); }
+            20%, 40%, 60%, 80% { transform: rotate(15deg); }
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% { 
+                opacity: 1; 
+                text-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;
+            }
+            50% { 
+                opacity: 0.9; 
+                text-shadow: 0 0 25px #FFD700, 0 0 50px #FFD700;
+            }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 85px;
+            right: 25px;
+            z-index: 9998;
+        }
+
+        .theme-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-btn:hover {
+            transform: rotate(45deg) scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 0, 92, 0.5);
+        }
+
+        /* Telegram Floating Sidebar */
+        .telegram-sidebar {
+            position: fixed;
+            left: 20px;
+            top: 120px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 25px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            z-index: 9997;
+            border: 2px solid rgba(255, 0, 92, 0.4);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            cursor: move;
+            user-select: none;
+            transition: var(--transition);
+            transform: none !important;
+        }
+
+        .telegram-sidebar.dragging {
+            opacity: 0.9;
+            border-color: var(--secondary);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
+        }
+
+        .telegram-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            font-size: 26px;
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .telegram-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .telegram-btn:hover {
+            transform: scale(1.15) rotate(12deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .telegram-btn:hover::before {
+            opacity: 1;
+        }
+
+        .telegram-btn.community {
+            background: linear-gradient(135deg, #0088CC, #006699);
+        }
+
+        .telegram-btn.channel {
+            background: linear-gradient(135deg, #FF005C, #D4004C);
+        }
+
+        .telegram-tooltip {
+            position: absolute;
+            right: -120px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(-15px);
+            transition: var(--transition);
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .telegram-btn:hover .telegram-tooltip {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 80px;
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: linear-gradient(135deg, 
+                rgba(255, 0, 92, 0.15), 
+                rgba(0, 212, 255, 0.15));
+            border-radius: var(--border-radius-lg);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 0, 92, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 212, 255, 0.2) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.8rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary), var(--accent), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: inline-block;
+            letter-spacing: -0.5px;
+        }
+
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 25%;
+            width: 50%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            border-radius: 2px;
+        }
+
+        .subtitle {
+            color: var(--muted-color);
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #FF005C, #FF2B7D);
+            padding: 14px 38px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 10px 30px rgba(255, 0, 92, 0.4);
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .live-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .live-dot {
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                opacity: 1; 
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); 
+            }
+            50% { 
+                transform: scale(1.3); 
+                opacity: 0.8; 
+            }
+            70% { 
+                box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); 
+            }
+        }
+
+        /* Period Section */
+        .period-section {
+            background: var(--card-color);
+            border-radius: var(--border-radius);
+            padding: 35px;
+            margin-bottom: 40px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .period-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .period-label {
+            color: var(--muted-color);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .period-display {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin: 25px 0;
+            padding: 30px;
+            background: rgba(0, 212, 255, 0.08);
+            border-radius: 20px;
+            border: 2px solid rgba(0, 212, 255, 0.15);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            box-shadow: inset 0 0 40px rgba(0, 212, 255, 0.1);
+            letter-spacing: 1px;
+        }
+
+        /* Prediction Section */
+        .prediction-section {
+            background: linear-gradient(135deg, 
+                rgba(255, 0, 92, 0.2), 
+                rgba(0, 212, 255, 0.2));
+            border-radius: var(--border-radius);
+            padding: 35px;
+            margin-bottom: 40px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            box-shadow: var(--shadow);
+        }
+
+        .prediction-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.4rem;
+            color: var(--accent);
+            margin-bottom: 30px;
+            text-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+            font-weight: 800;
+        }
+
+        .prediction-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 45px;
+            margin: 35px 0;
+            flex-wrap: wrap;
+        }
+
+        .prediction-number {
+            font-family: 'Orbitron', monospace;
+            font-size: 5.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            text-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            min-width: 120px;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% { 
+                transform: translateY(-25px) rotate(5deg) scale(1.05);
+            }
+        }
+
+        .prediction-type {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 4rem;
+            color: var(--success);
+            text-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .prediction-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 35px;
+        }
+
+        @media (max-width: 768px) {
+            .prediction-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.07);
+            padding: 25px;
+            border-radius: 20px;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .info-label {
+            color: var(--muted-color);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .info-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .title {
+                font-size: 3rem;
+            }
+            
+            .period-display {
+                font-size: 1.8rem;
+                padding: 25px;
+            }
+            
+            .prediction-number {
+                font-size: 4.5rem;
+            }
+            
+            .prediction-type {
+                font-size: 3.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .title {
+                font-size: 2.4rem;
+            }
+            
+            .period-display {
+                font-size: 1.5rem;
+                padding: 20px;
+            }
+            
+            .prediction-display {
+                gap: 25px;
+            }
+            
+            .prediction-number {
+                font-size: 4rem;
+            }
+            
+            .prediction-type {
+                font-size: 3rem;
+            }
+            
+            .telegram-sidebar {
+                display: none;
+            }
+            
+            .modal-content {
+                padding: 30px 20px;
+            }
+            
+            .modal-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-color);
+            border-radius: var(--border-radius);
+            padding: 35px;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            transform: translateX(-100%);
+            transition: transform 1s ease;
+        }
+
+        .card:hover::before {
+            transform: translateX(0);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-title {
+            font-size: 1.7rem;
+            color: var(--secondary);
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Time Card */
+        .real-time-clock {
+            font-family: 'Orbitron', monospace;
+            font-size: 4.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 35px 0;
+            text-shadow: 0 0 35px rgba(255, 0, 92, 0.4);
+            letter-spacing: 3px;
+        }
+
+        .clock-label {
+            color: var(--muted-color);
+            font-size: 1.1rem;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .timer-section {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .timer-label {
+            color: var(--muted-color);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .timer-display {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.8rem;
+            font-weight: 700;
+            color: var(--success);
+            margin: 20px 0;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .next-period {
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-top: 20px;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Numbers Grid - FIXED */
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .numbers-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .numbers-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .number-btn {
+            aspect-ratio: 1;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            border: 3px solid;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            color: white;
+            -webkit-text-stroke: 2px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            font-family: 'Montserrat', sans-serif;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .number-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.25) 0%, 
+                rgba(255, 255, 255, 0) 100%);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .number-btn:hover {
+            transform: translateY(-12px) rotateX(10deg) rotateY(10deg) scale(1.08);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .number-btn:hover::before {
+            opacity: 1;
+        }
+
+        .number-btn.active {
+            animation: glow 2s infinite;
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.6);
+            transform: scale(1.05);
+        }
+
+        @keyframes glow {
+            0%, 100% { 
+                box-shadow: 0 0 60px rgba(255, 215, 0, 0.6),
+                           0 0 90px rgba(255, 215, 0, 0.4),
+                           0 0 130px rgba(255, 215, 0, 0.2);
+            }
+            50% { 
+                box-shadow: 0 0 80px rgba(255, 215, 0, 0.8),
+                           0 0 120px rgba(255, 215, 0, 0.5),
+                           0 0 180px rgba(255, 215, 0, 0.3);
+            }
+        }
+
+        .btn-label {
+            font-size: 1rem;
+            font-weight: 800;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 6px 14px;
+            border-radius: 15px;
+            margin-top: 10px;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .btn-count {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-family: 'Montserrat', sans-serif;
+            min-width: 40px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-trending {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #FF005C, #FF2B7D);
+            color: white;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-family: 'Montserrat', sans-serif;
+            animation: bounce 2s infinite;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: var(--card-color);
+            border-radius: var(--border-radius);
+            padding: 35px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-title {
+            color: var(--muted-color);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 25px 0;
+            line-height: 1;
+            text-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .stat-subtitle {
+            color: var(--muted-color);
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 35px;
+            border-top: 2px solid rgba(255, 255, 255, 0.08);
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+
+        .time-info {
+            color: var(--muted-color);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            letter-spacing: 1.5px;
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, var(--accent), #FFAA00);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .important-notice {
+                padding: 12px;
+                font-size: 0.9rem;
+                gap: 10px;
+            }
+            
+            .important-notice .notice-icon {
+                font-size: 1.3rem;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .real-time-clock {
+                font-size: 3.2rem;
+            }
+            
+            .timer-display {
+                font-size: 2.8rem;
+            }
+            
+            .stat-value {
+                font-size: 2.8rem;
+            }
+            
+            .action-btn {
+                padding: 16px 30px;
+                font-size: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .numbers-grid {
+                gap: 15px;
+            }
+            
+            .number-btn {
+                font-size: 2.4rem;
+            }
+            
+            .theme-toggle {
+                top: 70px;
+                right: 15px;
+            }
+            
+            .theme-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dark-theme">
+    <!-- Period Input Modal -->
+    <div class="modal-overlay" id="periodModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Enter Current Period</h2>
+            <p class="modal-subtitle">
+                Please enter the <strong>LAST 3 DIGITS</strong> of the current period number<br>
+                to synchronize with the live system
+            </p>
+            
+            <div class="period-input-container">
+                <label class="period-input-label">Enter Last 3 Digits:</label>
+                <input 
+                    type="text" 
+                    class="period-input" 
+                    id="periodInput"
+                    placeholder="000"
+                    maxlength="3"
+                    pattern="\d{3}"
+                    inputmode="numeric"
+                    autocomplete="off"
+                >
+                <div class="input-error" id="inputError">
+                    Please enter exactly 3 digits (000-999)
+                </div>
+                <div class="period-example">
+                    Example: If period is 202602081000<span style="color: var(--accent); font-weight: bold;">150</span>, enter <strong>150</strong>
+                </div>
+            </div>
+            
+            <button class="modal-btn" id="submitPeriod">
+                <i class="fas fa-play-circle"></i>
+                START LIVE TRACKING
+            </button>
+            
+            <div style="margin-top: 30px; color: var(--muted-color); font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i>
+                This ensures accurate timing and synchronization
+            </div>
+        </div>
+    </div>
+
+    <!-- Important Notice Sticky Bar -->
+    <div class="important-notice" id="importantNotice">
+        <div class="notice-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="notice-text">
+            <span class="highlight">সকলে অবশ্যই ৫ থেকে ৬ স্টেজ ফলো করবেন!</span> 
+            - সফলতার জন্য এই নিয়ম মেনে চলুন
+        </div>
+        <div class="notice-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+    </div>
+
+    <!-- Telegram Floating Sidebar -->
+    <div class="telegram-sidebar" id="telegramSidebar">
+        <a href="https://t.me/RealModehack" class="telegram-btn community" target="_blank" title="Community">
+            <i class="fab fa-telegram"></i>
+            <span class="telegram-tooltip">Join Community</span>
+        </a>
+        <a href="https://t.me/RealModehack" class="telegram-btn channel" target="_blank" title="Channel">
+            <i class="fas fa-broadcast-tower"></i>
+            <span class="telegram-tooltip">Our Channel</span>
+        </a>
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <!-- Main Content (Hidden until period is entered) -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <h1 class="title">Real Mode Hack</h1>
+                <div class="subtitle">Premium Live Prediction & Tracking System</div>
+                
+                <div class="live-badge">
+                    <div class="live-dot"></div>
+                    <span>LIVE PREDICTION ACTIVE</span>
+                </div>
+            </div>
+            
+            <!-- Period Section -->
+            <div class="period-section">
+                <div class="period-label">Current Period Number</div>
+                <div class="period-display" id="currentPeriod">-- -- --</div>
+            </div>
+            
+            <!-- Prediction Section -->
+            <div class="prediction-section">
+                <h2 class="prediction-title">Current Prediction</h2>
+                
+                <div class="prediction-display">
+                    <div class="prediction-number" id="predictionNumber">7</div>
+                    <div class="prediction-type" id="predictionType">BIG</div>
+                </div>
+                
+                <div class="prediction-info">
+                    <div class="info-card">
+                        <div class="info-label">Next Prediction In</div>
+                        <div class="info-value" id="nextPredictionTimer">--</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Prediction Accuracy</div>
+                        <div class="info-value">85%</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Trend Strength</div>
+                        <div class="info-value">HIGH</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Grid -->
+            <div class="main-grid">
+                <!-- Time Card -->
+                <div class="card time-card">
+                    <h2 class="card-title">
+                        <i class="fas fa-clock"></i>
+                        Real Time Clock
+                    </h2>
+                    
+                    <div class="real-time-clock" id="realTimeClock">
+                        00:00:00
+                    </div>
+                    
+                    <div class="clock-label">Synchronized with System Time</div>
+                    
+                    <div class="timer-section">
+                        <div class="timer-label">Next Period In</div>
+                        <div class="timer-display" id="nextPeriodTimer">--:--</div>
+                        <div class="next-period">Next Period: <span id="nextPeriodNumber">-- -- --</span></div>
+                    </div>
+                </div>
+                
+                <!-- Numbers Card -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-users"></i>
+                        Member Choice
+                    </h2>
+                    
+                    <div class="numbers-grid" id="numbersGrid">
+                        <!-- Numbers 0-9 will be generated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Active Members</div>
+                    <div class="stat-value" id="activeMembers">--</div>
+                    <div class="stat-subtitle">Currently online</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Choice Accuracy</div>
+                    <div class="stat-value" id="choiceAccuracy">--%</div>
+                    <div class="stat-subtitle">Last 24 hours</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Next Update</div>
+                    <div class="stat-value" id="nextUpdateSeconds">--</div>
+                    <div class="stat-subtitle">Seconds remaining</div>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="controls">
+                <div class="time-info">
+                    <i class="far fa-clock"></i>
+                    <span id="lastSyncTime">Awaiting period input...</span>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="action-btn" id="syncTime">
+                        <i class="fas fa-sync-alt"></i>
+                        Sync Now
+                    </button>
+                    
+                    <a href="https://t.me/RealModehack" class="action-btn secondary" target="_blank">
+                        <i class="fab fa-telegram"></i>
+                        Join Real Mode Hack
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // FIXED NUMBER BUTTONS SYSTEM
+        // =============================================
+        
+        // Configuration
+        const BASE_PERIOD = '202602081000'; // First 12 digits (YYYYMMDDHHMM)
+        
+        // Number Colors Configuration
+        const numberStyles = {
+            0: { 
+                bg: 'linear-gradient(135deg, #FF005C, #FF2B7D)',
+                border: '#FF005C',
+                type: 'Mixed',
+                trend: true
+            },
+            1: { 
+                bg: 'linear-gradient(135deg, #00FF88, #00D46E)',
+                border: '#00FF88',
+                type: 'Small',
+                trend: false
+            },
+            2: { 
+                bg: 'linear-gradient(135deg, #FF4757, #FF2B3B)',
+                border: '#FF4757',
+                type: 'Small',
+                trend: false
+            },
+            3: { 
+                bg: 'linear-gradient(135deg, #00FF88, #00D46E)',
+                border: '#00FF88',
+                type: 'Small',
+                trend: true
+            },
+            4: { 
+                bg: 'linear-gradient(135deg, #FF4757, #FF2B3B)',
+                border: '#FF4757',
+                type: 'Small',
+                trend: false
+            },
+            5: { 
+                bg: 'linear-gradient(135deg, #00D4FF, #00A8CC)',
+                border: '#00D4FF',
+                type: 'Big',
+                trend: true
+            },
+            6: { 
+                bg: 'linear-gradient(135deg, #FF4757, #FF2B3B)',
+                border: '#FF4757',
+                type: 'Big',
+                trend: false
+            },
+            7: { 
+                bg: 'linear-gradient(135deg, #00FF88, #FF2B7D)',
+                border: '#00FF88',
+                type: 'Big',
+                trend: true
+            },
+            8: { 
+                bg: 'linear-gradient(135deg, #00D4FF, #00A8CC)',
+                border: '#00D4FF',
+                type: 'Big',
+                trend: false
+            },
+            9: { 
+                bg: 'linear-gradient(135deg, #00FF88, #00D46E)',
+                border: '#00FF88',
+                type: 'Big',
+                trend: true
+            }
+        };
+
+        // Prediction Pattern
+        const predictionPattern = [
+            { number: 7, type: 'Big', duration: 3 },
+            { number: 5, type: 'Big', duration: 2 },
+            { number: 9, type: 'Big', duration: 2 },
+            { number: 3, type: 'Small', duration: 1 },
+            { number: 7, type: 'Big', duration: 3 },
+            { number: 0, type: 'Mixed', duration: 1 },
+            { number: 7, type: 'Big', duration: 3 },
+            { number: 5, type: 'Big', duration: 2 },
+            { number: 7, type: 'Big', duration: 3 },
+            { number: 9, type: 'Big', duration: 2 }
+        ];
+
+        // Application State
+        let state = {
+            currentPeriodSequence: null,
+            currentPeriod: null,
+            currentMemberChoice: 7,
+            currentPrediction: { number: 7, type: 'Big' },
+            activeMembers: 1527,
+            predictionAccuracy: 85,
+            lastSyncTime: null,
+            nextPeriodTime: null,
+            nextPredictionTime: null,
+            predictionIndex: 0,
+            isSynced: false,
+            theme: 'dark',
+            startTime: null,
+            timerInterval: null,
+            minutesElapsed: 0,
+            numberButtons: {}
+        };
+
+        // =============================================
+        // INITIALIZATION
+        // =============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Loaded - Initializing system');
+            initSystem();
+        });
+
+        function initSystem() {
+            const savedPeriod = sessionStorage.getItem('currentPeriodSequence');
+            
+            if (savedPeriod && savedPeriod.length === 3 && /^\d{3}$/.test(savedPeriod)) {
+                console.log('Found saved period:', savedPeriod);
+                initializeSystem(savedPeriod);
+            } else {
+                console.log('No saved period found, showing modal');
+                showPeriodModal();
+            }
+        }
+
+        // =============================================
+        // MODAL HANDLING
+        // =============================================
+        
+        function showPeriodModal() {
+            const modal = document.getElementById('periodModal');
+            const input = document.getElementById('periodInput');
+            const submitBtn = document.getElementById('submitPeriod');
+            const errorMsg = document.getElementById('inputError');
+            
+            modal.style.display = 'flex';
+            
+            // Focus on input
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
+            
+            // Enable submit button
+            submitBtn.disabled = false;
+            submitBtn.classList.add('active');
+            
+            // Input validation
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                
+                if (this.value.length > 3) {
+                    this.value = this.value.slice(0, 3);
+                }
+                
+                const isValid = this.value.length === 3 && /^\d{3}$/.test(this.value);
+                submitBtn.disabled = !isValid;
+                
+                if (isValid) {
+                    submitBtn.classList.add('active');
+                } else {
+                    submitBtn.classList.remove('active');
+                }
+                
+                errorMsg.classList.remove('show');
+            });
+            
+            // Submit on Enter
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (this.value.length === 3 && /^\d{3}$/.test(this.value)) {
+                        submitPeriod();
+                    }
+                }
+            });
+            
+            // Submit button click
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const periodDigits = input.value.trim();
+                
+                if (periodDigits.length !== 3 || !/^\d{3}$/.test(periodDigits)) {
+                    errorMsg.classList.add('show');
+                    input.focus();
+                    input.select();
+                    return;
+                }
+                
+                initializeSystem(periodDigits);
+                
+                modal.style.opacity = '0';
+                modal.style.transform = 'scale(0.9)';
+                
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+        }
+
+        // =============================================
+        // MAIN SYSTEM INITIALIZATION
+        // =============================================
+        
+        function initializeSystem(periodDigits) {
+            console.log('Initializing with period:', periodDigits);
+            
+            // Save to session storage
+            sessionStorage.setItem('currentPeriodSequence', periodDigits);
+            
+            // Set state
+            state.currentPeriodSequence = periodDigits;
+            state.currentPeriod = BASE_PERIOD + periodDigits;
+            state.startTime = new Date();
+            state.lastSyncTime = new Date();
+            state.isSynced = true;
+            
+            // Update period display
+            document.getElementById('currentPeriod').textContent = state.currentPeriod;
+            calculateAndDisplayNextPeriod();
+            
+            // Show main content
+            document.getElementById('mainContent').classList.add('active');
+            
+            // Initialize all components
+            initializeNumberButtons();
+            initializePrediction();
+            updateRealTimeClock();
+            calculateNextPeriodTime();
+            calculateNextPredictionTime();
+            updateAllDisplays();
+            initializeDragAndDrop();
+            
+            // Start timers
+            startTimers();
+            
+            // Add event listeners
+            document.getElementById('syncTime').addEventListener('click', syncTimeNow);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Show notification
+            showNotification('System synchronized! Live tracking activated.');
+            
+            console.log('System initialized successfully');
+        }
+
+        // =============================================
+        // NUMBER BUTTONS - FIXED VERSION
+        // =============================================
+        
+        function initializeNumberButtons() {
+            console.log('Initializing number buttons...');
+            
+            const grid = document.getElementById('numbersGrid');
+            if (!grid) {
+                console.error('Numbers grid not found!');
+                return;
+            }
+            
+            grid.innerHTML = '';
+            
+            for (let i = 0; i <= 9; i++) {
+                const style = numberStyles[i];
+                const isActive = i === state.currentMemberChoice;
+                const memberCount = getPremiumMemberCount(i);
+                
+                const button = document.createElement('div');
+                button.className = `number-btn ${isActive ? 'active' : ''}`;
+                button.style.background = style.bg;
+                button.style.borderColor = style.border;
+                button.innerHTML = `
+                    <div class="btn-count">${memberCount}</div>
+                    ${style.trend ? '<div class="btn-trending">TRENDING</div>' : ''}
+                    ${i}
+                    <div class="btn-label">${style.type}</div>
+                `;
+                
+                // Add click event listener
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    console.log('Number button clicked:', i);
+                    updateMemberChoice(i);
+                });
+                
+                // Add touch event for mobile
+                button.addEventListener('touchstart', function(e) {
+                    e.stopPropagation();
+                    console.log('Number button touched:', i);
+                    updateMemberChoice(i);
+                });
+                
+                // Store button reference
+                state.numberButtons[i] = button;
+                
+                grid.appendChild(button);
+            }
+            
+            console.log('Number buttons initialized successfully');
+        }
+
+        function updateMemberChoice(number) {
+            console.log('Updating member choice to:', number);
+            
+            // Update state
+            state.currentMemberChoice = number;
+            
+            // Update all buttons
+            for (let i = 0; i <= 9; i++) {
+                const button = state.numberButtons[i];
+                if (button) {
+                    if (i === number) {
+                        button.classList.add('active');
+                        
+                        // Increase count for selected number
+                        const countElement = button.querySelector('.btn-count');
+                        if (countElement) {
+                            let currentCount = parseInt(countElement.textContent) || 0;
+                            currentCount += Math.floor(Math.random() * 50) + 30;
+                            countElement.textContent = currentCount;
+                        }
+                    } else {
+                        button.classList.remove('active');
+                    }
+                }
+            }
+            
+            // Update active members count
+            state.activeMembers += Math.floor(Math.random() * 50) + 20;
+            updateStatDisplay('activeMembers', state.activeMembers.toLocaleString());
+            
+            // Show notification
+            showNotification(`Members are now choosing: Number ${number} (${numberStyles[number].type})`);
+            
+            // Log for debugging
+            console.log('Member choice updated successfully');
+        }
+
+        function updateNumberButtonsColors() {
+            for (let i = 0; i <= 9; i++) {
+                const button = state.numberButtons[i];
+                const style = numberStyles[i];
+                if (button && style) {
+                    button.style.background = style.bg;
+                    button.style.borderColor = style.border;
+                }
+            }
+        }
+
+        function getPremiumMemberCount(number) {
+            let baseCount = Math.floor(Math.random() * 100) + 100;
+            if (numberStyles[number].trend) baseCount += 80;
+            if (number === state.currentMemberChoice) baseCount += 150;
+            if (number === state.currentPrediction.number) baseCount += 200;
+            return baseCount;
+        }
+
+        // =============================================
+        // PREDICTION SYSTEM
+        // =============================================
+        
+        function initializePrediction() {
+            updatePredictionDisplay();
+        }
+
+        function updatePredictionDisplay() {
+            document.getElementById('predictionNumber').textContent = 
+                state.currentPrediction.number;
+            document.getElementById('predictionType').textContent = 
+                state.currentPrediction.type;
+        }
+
+        function autoUpdatePrediction() {
+            const nextPrediction = predictionPattern[state.predictionIndex];
+            state.currentPrediction = {
+                number: nextPrediction.number,
+                type: nextPrediction.type
+            };
+            
+            updatePredictionDisplay();
+            state.predictionIndex = (state.predictionIndex + 1) % predictionPattern.length;
+            calculateNextPredictionTime();
+            
+            showNotification(`New prediction: ${nextPrediction.number} (${nextPrediction.type})`);
+            updateNumberButtonCount(nextPrediction.number, 250);
+        }
+
+        function updateNumberButtonCount(number, increment) {
+            const button = state.numberButtons[number];
+            if (button) {
+                const countElement = button.querySelector('.btn-count');
+                if (countElement) {
+                    let currentCount = parseInt(countElement.textContent) || 0;
+                    currentCount += increment;
+                    countElement.textContent = currentCount;
+                }
+            }
+        }
+
+        function autoUpdateMemberChoice() {
+            if (Math.random() > 0.6) {
+                const trendingNumbers = [0, 3, 5, 7, 9];
+                const newChoice = trendingNumbers[Math.floor(Math.random() * trendingNumbers.length)];
+                if (newChoice !== state.currentMemberChoice) {
+                    updateMemberChoice(newChoice);
+                }
+            }
+        }
+
+        // =============================================
+        // TIMER SYSTEM
+        // =============================================
+        
+        function startTimers() {
+            setInterval(updateRealTimeClock, 1000);
+            state.timerInterval = setInterval(updateTimers, 1000);
+            setInterval(autoIncrementPeriod, 60000);
+            setInterval(updatePredictionTimer, 1000);
+            setInterval(updateLastSyncTime, 30000);
+            setInterval(autoUpdateMemberChoice, 20000);
+            setInterval(autoUpdatePrediction, 60000);
+        }
+
+        function updateTimers() {
+            if (!state.startTime) return;
+            
+            const now = new Date();
+            const diff = Math.floor((now - state.startTime) / 1000);
+            const minutesElapsed = Math.floor(diff / 60);
+            
+            state.minutesElapsed = minutesElapsed;
+            updateNextPeriodTimer();
+        }
+
+        function autoIncrementPeriod() {
+            if (!state.currentPeriodSequence) return;
+            
+            let sequenceNum = parseInt(state.currentPeriodSequence);
+            sequenceNum++;
+            
+            if (sequenceNum > 999) {
+                sequenceNum = 0;
+            }
+            
+            state.currentPeriodSequence = sequenceNum.toString().padStart(3, '0');
+            state.currentPeriod = BASE_PERIOD + state.currentPeriodSequence;
+            
+            document.getElementById('currentPeriod').textContent = state.currentPeriod;
+            calculateAndDisplayNextPeriod();
+            
+            sessionStorage.setItem('currentPeriodSequence', state.currentPeriodSequence);
+            
+            if (sequenceNum % 10 === 0) {
+                showNotification(`Period updated to: ${state.currentPeriod}`);
+            }
+        }
+
+        function calculateAndDisplayNextPeriod() {
+            if (!state.currentPeriodSequence) return;
+            
+            let nextSequence = parseInt(state.currentPeriodSequence) + 1;
+            if (nextSequence > 999) nextSequence = 0;
+            
+            const nextPeriod = BASE_PERIOD + nextSequence.toString().padStart(3, '0');
+            document.getElementById('nextPeriodNumber').textContent = nextPeriod;
+        }
+
+        function updateRealTimeClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            document.getElementById('realTimeClock').textContent = 
+                `${hours}:${minutes}:${seconds}`;
+        }
+
+        function calculateNextPeriodTime() {
+            const now = new Date();
+            const currentSeconds = now.getSeconds();
+            const secondsToNextMinute = 60 - currentSeconds;
+            
+            state.nextPeriodTime = new Date(now.getTime() + secondsToNextMinute * 1000);
+        }
+
+        function calculateNextPredictionTime() {
+            const now = new Date();
+            const nextPrediction = new Date(now.getTime() + 60000);
+            state.nextPredictionTime = nextPrediction;
+        }
+
+        function updateNextPeriodTimer() {
+            if (!state.nextPeriodTime) {
+                calculateNextPeriodTime();
+                return;
+            }
+            
+            const now = new Date();
+            const diff = Math.floor((state.nextPeriodTime - now) / 1000);
+            
+            if (diff <= 0) {
+                calculateNextPeriodTime();
+                updateNextPeriodTimer();
+                return;
+            }
+            
+            const minutes = Math.floor(diff / 60);
+            const seconds = diff % 60;
+            
+            document.getElementById('nextPeriodTimer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            document.getElementById('nextUpdateSeconds').textContent = seconds;
+        }
+
+        function updatePredictionTimer() {
+            if (!state.nextPredictionTime) {
+                calculateNextPredictionTime();
+                return;
+            }
+            
+            const now = new Date();
+            const diff = Math.floor((state.nextPredictionTime - now) / 1000);
+            
+            if (diff <= 0) {
+                autoUpdatePrediction();
+                calculateNextPredictionTime();
+                return;
+            }
+            
+            document.getElementById('nextPredictionTimer').textContent = `${diff}s`;
+        }
+
+        // =============================================
+        // DISPLAY FUNCTIONS
+        // =============================================
+        
+        function updateAllDisplays() {
+            updateStatDisplay('activeMembers', state.activeMembers.toLocaleString());
+            updateStatDisplay('choiceAccuracy', '85%');
+            updateLastSyncTime();
+            calculateAndDisplayNextPeriod();
+        }
+
+        function updateStatDisplay(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                const currentValue = element.textContent;
+                if (currentValue !== value) {
+                    element.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        element.textContent = value;
+                        element.style.transform = 'scale(1)';
+                    }, 150);
+                }
+            }
+        }
+
+        function updateLastSyncTime() {
+            if (!state.lastSyncTime) return;
+            
+            const now = new Date();
+            const diff = Math.floor((now - state.lastSyncTime) / 1000);
+            
+            let timeText;
+            if (diff < 60) {
+                timeText = 'Just now';
+            } else if (diff < 120) {
+                timeText = '1 minute ago';
+            } else if (diff < 3600) {
+                timeText = `${Math.floor(diff / 60)} minutes ago`;
+            } else {
+                timeText = `${Math.floor(diff / 3600)} hours ago`;
+            }
+            
+            document.getElementById('lastSyncTime').textContent = `Last sync: ${timeText}`;
+        }
+
+        // =============================================
+        // THEME TOGGLE
+        // =============================================
+        
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.querySelector('#themeToggle i');
+            
+            if (state.theme === 'dark') {
+                body.classList.remove('dark-theme');
+                body.classList.add('light-theme');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                state.theme = 'light';
+            } else {
+                body.classList.remove('light-theme');
+                body.classList.add('dark-theme');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                state.theme = 'dark';
+            }
+            
+            updateNumberButtonsColors();
+        }
+
+        // =============================================
+        // SYNC FUNCTION
+        // =============================================
+        
+        function syncTimeNow() {
+            if (!state.isSynced) return;
+            
+            state.lastSyncTime = new Date();
+            calculateNextPeriodTime();
+            calculateNextPredictionTime();
+            updateLastSyncTime();
+            
+            showNotification('System synchronized successfully!');
+            
+            const syncBtn = document.getElementById('syncTime');
+            const originalHTML = syncBtn.innerHTML;
+            syncBtn.innerHTML = '<i class="fas fa-check"></i> Synced!';
+            syncBtn.style.background = 'linear-gradient(135deg, #00FF88, #00D46E)';
+            
+            setTimeout(() => {
+                syncBtn.innerHTML = originalHTML;
+                syncBtn.style.background = 'linear-gradient(135deg, var(--primary), var(--secondary))';
+            }, 2000);
+        }
+
+        // =============================================
+        // NOTIFICATION SYSTEM
+        // =============================================
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'important-notice';
+            notification.style.position = 'fixed';
+            notification.style.top = '100px';
+            notification.style.right = '25px';
+            notification.style.zIndex = '10001';
+            notification.style.width = 'auto';
+            notification.style.maxWidth = '400px';
+            notification.style.padding = '15px 25px';
+            notification.style.borderRadius = '15px';
+            notification.style.background = 'linear-gradient(135deg, rgba(255, 0, 92, 0.95), rgba(0, 212, 255, 0.95))';
+            notification.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+            notification.style.backdropFilter = 'blur(20px)';
+            notification.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.4)';
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px; color: white;">
+                    <i class="fas fa-info-circle" style="font-size: 1.3rem;"></i>
+                    <span style="font-weight: 600; font-family: Montserrat, sans-serif;">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // =============================================
+        // DRAG AND DROP FOR TELEGRAM SIDEBAR
+        // =============================================
+        
+        function initializeDragAndDrop() {
+            const sidebar = document.getElementById('telegramSidebar');
+            
+            loadSidebarPosition();
+            
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+            
+            sidebar.addEventListener('mousedown', startDragMouse);
+            document.addEventListener('mousemove', dragMouse);
+            document.addEventListener('mouseup', stopDrag);
+            
+            sidebar.addEventListener('touchstart', startDragTouch);
+            document.addEventListener('touchmove', dragTouch);
+            document.addEventListener('touchend', stopDrag);
+            
+            function startDragMouse(e) {
+                isDragging = true;
+                sidebar.classList.add('dragging');
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                const rect = sidebar.getBoundingClientRect();
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                
+                e.preventDefault();
+            }
+            
+            function startDragTouch(e) {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    sidebar.classList.add('dragging');
+                    
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    
+                    const rect = sidebar.getBoundingClientRect();
+                    initialLeft = rect.left;
+                    initialTop = rect.top;
+                    
+                    e.preventDefault();
+                }
+            }
+            
+            function dragMouse(e) {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                updateSidebarPosition(initialLeft + dx, initialTop + dy);
+            }
+            
+            function dragTouch(e) {
+                if (!isDragging || e.touches.length !== 1) return;
+                
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
+                
+                updateSidebarPosition(initialLeft + dx, initialTop + dy);
+                e.preventDefault();
+            }
+            
+            function stopDrag() {
+                if (!isDragging) return;
+                
+                isDragging = false;
+                sidebar.classList.remove('dragging');
+                saveSidebarPosition();
+            }
+            
+            function updateSidebarPosition(left, top) {
+                const noticeHeight = document.getElementById('importantNotice').offsetHeight;
+                const maxLeft = window.innerWidth - sidebar.offsetWidth - 10;
+                const maxTop = window.innerHeight - sidebar.offsetHeight - 10;
+                
+                left = Math.max(10, Math.min(maxLeft, left));
+                top = Math.max(noticeHeight + 10, Math.min(maxTop, top));
+                
+                sidebar.style.left = left + 'px';
+                sidebar.style.top = top + 'px';
+            }
+            
+            function saveSidebarPosition() {
+                const rect = sidebar.getBoundingClientRect();
+                const position = {
+                    left: rect.left,
+                    top: rect.top
+                };
+                localStorage.setItem('telegramSidebarPosition', JSON.stringify(position));
+            }
+            
+            function loadSidebarPosition() {
+                const saved = localStorage.getItem('telegramSidebarPosition');
+                if (saved) {
+                    try {
+                        const position = JSON.parse(saved);
+                        const noticeHeight = document.getElementById('importantNotice').offsetHeight;
+                        
+                        const maxLeft = window.innerWidth - sidebar.offsetWidth - 10;
+                        const maxTop = window.innerHeight - sidebar.offsetHeight - 10;
+                        
+                        const left = Math.max(10, Math.min(maxLeft, position.left));
+                        const top = Math.max(noticeHeight + 10, Math.min(maxTop, position.top));
+                        
+                        sidebar.style.left = left + 'px';
+                        sidebar.style.top = top + 'px';
+                    } catch (e) {
+                        console.error('Error loading sidebar position:', e);
+                    }
+                }
+            }
+            
+            window.addEventListener('resize', loadSidebarPosition);
+        }
+
+        // =============================================
+        // DEBUGGING
+        // =============================================
+        
+        console.log('Script loaded successfully');
+        
+        // Test button functionality
+        setTimeout(() => {
+            console.log('Testing button functionality...');
+            const numberButtons = document.querySelectorAll('.number-btn');
+            console.log('Number buttons found:', numberButtons.length);
+        }, 1000);
+    </script>
+</body>
+</html>
